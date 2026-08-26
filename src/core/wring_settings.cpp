@@ -23,22 +23,24 @@ void WringSettings::save()
 
 QString WringSettings::triggerModifierName() const
 {
-    switch (m_triggerModifier) {
-        case Super: return "Super";
-        case Ctrl: return "Ctrl";
-        case Alt: return "Alt";
-        case CtrlAlt: return "Ctrl+Alt";
-        default: return "Super";
-    }
+    if (m_triggerModifier == 0) return "None";
+
+    QStringList parts;
+    if (m_triggerModifier & Super)   parts << "Super";
+    if (m_triggerModifier & Ctrl)    parts << "Ctrl";
+    if (m_triggerModifier & Alt)     parts << "Alt";
+    if (m_triggerModifier & Shift)   parts << "Shift";
+
+    return parts.isEmpty() ? "None" : parts.join("+");
 }
 
 QString WringSettings::triggerButtonName() const
 {
     switch (m_triggerButton) {
-        case Right: return "Right Click";
+        case Left:   return "Left Click";
         case Middle: return "Middle Click";
-        case Left: return "Left Click";
-        default: return "Right Click";
+        case Right:  return "Right Click";
+        default:     return "Right Click";
     }
 }
 
@@ -56,6 +58,18 @@ void WringSettings::setTriggerButton(int button)
     m_triggerButton = button;
     save();
     emit triggerButtonChanged();
+}
+
+void WringSettings::toggleModifier(int mask)
+{
+    int newMod = m_triggerModifier ^ mask;
+    if (newMod == 0) return;
+    setTriggerModifier(newMod);
+}
+
+bool WringSettings::hasModifier(int mask) const
+{
+    return (m_triggerModifier & mask) != 0;
 }
 
 QString WringSettings::shortcutString() const

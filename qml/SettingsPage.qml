@@ -56,13 +56,13 @@ Rectangle {
             color: "#333355"
         }
 
-        // Trigger Modifier
+        // Trigger Modifier — checkboxes for combining
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 8
 
             Text {
-                text: "Trigger Modifier"
+                text: "Trigger Modifier (combine freely)"
                 color: "#aaaacc"
                 font.pixelSize: 14
             }
@@ -75,30 +75,52 @@ Rectangle {
 
                 Repeater {
                     model: [
-                        { label: "Super", value: WringSettings.Super },
-                        { label: "Ctrl", value: WringSettings.Ctrl },
-                        { label: "Alt", value: WringSettings.Alt },
-                        { label: "Ctrl+Alt", value: WringSettings.CtrlAlt }
+                        { label: "Super", mask: WringSettings.Super },
+                        { label: "Ctrl",  mask: WringSettings.Ctrl },
+                        { label: "Alt",   mask: WringSettings.Alt },
+                        { label: "Shift", mask: WringSettings.Shift }
                     ]
 
                     Rectangle {
                         Layout.fillWidth: true
                         height: 40
                         radius: 6
-                        color: modelData.value === WringSettings.triggerModifier ? "#4466aa" : "#2a2a4a"
-                        border.color: modelData.value === WringSettings.triggerModifier ? "#6688cc" : "#3a3a5a"
+                        color: WringSettings.hasModifier(modelData.mask) ? "#4466aa" : "#2a2a4a"
+                        border.color: WringSettings.hasModifier(modelData.mask) ? "#6688cc" : "#3a3a5a"
                         border.width: 1
 
-                        Text {
-                            anchors.centerIn: parent
-                            text: modelData.label
-                            color: "#ffffff"
-                            font.pixelSize: 14
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            spacing: 8
+
+                            Rectangle {
+                                width: 20
+                                height: 20
+                                radius: 4
+                                color: WringSettings.hasModifier(modelData.mask) ? "#6688cc" : "#1a1a2e"
+                                border.color: "#6688cc"
+                                border.width: 1
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: WringSettings.hasModifier(modelData.mask) ? "\u2713" : ""
+                                    color: "#ffffff"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                }
+                            }
+
+                            Text {
+                                text: modelData.label
+                                color: "#ffffff"
+                                font.pixelSize: 14
+                            }
                         }
 
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: WringSettings.triggerModifier = modelData.value
+                            onClicked: WringSettings.toggleModifier(modelData.mask)
                         }
                     }
                 }
@@ -122,9 +144,9 @@ Rectangle {
 
                 Repeater {
                     model: [
-                        { label: "Left", value: WringSettings.Left },
+                        { label: "Left",   value: WringSettings.Left },
                         { label: "Middle", value: WringSettings.Middle },
-                        { label: "Right", value: WringSettings.Right }
+                        { label: "Right",  value: WringSettings.Right }
                     ]
 
                     Rectangle {

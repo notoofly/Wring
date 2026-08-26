@@ -12,18 +12,19 @@ class WringSettings : public QObject {
     Q_PROPERTY(QString triggerButtonName READ triggerButtonName NOTIFY triggerButtonChanged)
 
 public:
+    // X11 modifier masks — combinable via bitmask OR
     enum Modifier {
-        Super = 4,
-        Ctrl = 2,
-        Alt = 8,
-        CtrlAlt = 10
+        Shift  = 1,   // ShiftMask
+        Ctrl    = 4,   // ControlMask
+        Alt     = 8,   // Mod1Mask
+        Super   = 64   // Mod4Mask
     };
     Q_ENUM(Modifier)
 
     enum MouseButton {
-        Right = 3,
+        Left   = 1,
         Middle = 2,
-        Left = 1
+        Right  = 3
     };
     Q_ENUM(MouseButton)
 
@@ -38,6 +39,8 @@ public:
 
     Q_INVOKABLE void setTriggerModifier(int modifier);
     Q_INVOKABLE void setTriggerButton(int button);
+    Q_INVOKABLE void toggleModifier(int mask);
+    Q_INVOKABLE bool hasModifier(int mask) const;
     Q_INVOKABLE QString shortcutString() const;
 
 signals:
