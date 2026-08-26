@@ -23,6 +23,19 @@ public:
     };
     Q_ENUM(WringState)
 
+    Q_PROPERTY(WringState state READ state NOTIFY stateChanged)
+    Q_PROPERTY(bool visible READ isVisible NOTIFY visibleChanged)
+    Q_PROPERTY(QVariantList windows READ windows NOTIFY windowsChanged)
+    Q_PROPERTY(QVariantList workspaces READ workspaces NOTIFY workspacesChanged)
+    Q_PROPERTY(QVariantList popularApps READ popularApps NOTIFY popularAppsChanged)
+    Q_PROPERTY(int selectedIndex READ selectedIndex NOTIFY selectedIndexChanged)
+    Q_PROPERTY(int ring2SelectedIndex READ ring2SelectedIndex NOTIFY ring2SelectedIndexChanged)
+    Q_PROPERTY(QVariantMap ring1Center READ ring1Center NOTIFY ring1CenterChanged)
+    Q_PROPERTY(QVariantMap ring2Center READ ring2Center NOTIFY ring2CenterChanged)
+    Q_PROPERTY(QVariantMap cursorPos READ cursorPos NOTIFY cursorPosChanged)
+    Q_PROPERTY(int ring1ItemCount READ ring1ItemCount NOTIFY windowsChanged)
+    Q_PROPERTY(QVariantMap screenGeometry READ screenGeometry NOTIFY screenGeometryChanged)
+
     explicit WringController(QObject* parent = nullptr);
     ~WringController() override;
 
