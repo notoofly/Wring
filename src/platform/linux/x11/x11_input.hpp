@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QTimer>
 #include <functional>
 
 class X11Input : public QObject {
@@ -24,23 +25,33 @@ public:
     void setCursorMoveCallback(CursorMoveCallback cb) { m_cursorMoveCallback = std::move(cb); }
     void setWheelCallback(WheelCallback cb) { m_wheelCallback = std::move(cb); }
 
+    void setTriggerModifier(unsigned int modifier);
+    void setTriggerButton(int button);
+
     void startListening();
     void stopListening();
+    void updateGrab();
 
     bool isListening() const { return m_listening; }
 
-private:
+private slots:
     void pollEvents();
+
+private:
     void handleButtonPress(int button);
     void handleButtonRelease(int button);
     void handleMotion(int x, int y);
     void handleWheel(int delta);
+    bool isSuperDown();
 
     void* m_display = nullptr;
     unsigned long m_rootWindow = 0;
     bool m_listening = false;
     bool m_superPressed = false;
     bool m_rmbPressed = false;
+
+    unsigned int m_triggerModifier = 4; // Mod4Mask (Super)
+    int m_triggerButton = 3; // Button3 (Right)
 
     SuperRMBCallback m_superRMBCallback;
     SuperRMBReleaseCallback m_superRMBReleaseCallback;
@@ -49,4 +60,6 @@ private:
 
     int m_lastX = 0;
     int m_lastY = 0;
+
+    QTimer* m_pollTimer = nullptr;
 };

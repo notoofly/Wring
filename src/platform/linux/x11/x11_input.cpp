@@ -13,7 +13,9 @@ Q_LOGGING_CATEGORY(lcX11Input, "wring.input.x11")
 
 X11Input::X11Input(QObject* parent)
     : QObject(parent)
+    , m_pollTimer(new QTimer(this))
 {
+    connect(m_pollTimer, &QTimer::timeout, this, &X11Input::pollEvents);
 }
 
 X11Input::~X11Input()
@@ -42,16 +44,28 @@ void X11Input::shutdown()
     m_rootWindow = 0;
 }
 
+void X11Input::setTriggerModifier(unsigned int modifier)
+{
+    if (m_triggerModifier == modifier) return;
+    m_triggerModifier = modifier;
+    if (m_listening) updateGrab();
+}
+
+void X11Input::setTriggerButton(int button)
+{
+    if (m_triggerButton == button) return;
+    m_triggerButton = button;
+    if (m_listening) updateGrab();
+}
+
 void X11Input::startListening()
 {
     if (m_listening) return;
     if (!m_display || m_rootWindow == 0) return;
 
-    Display* dpy = static_cast<Display*>(m_display);
+    updateGrab();
 
-    XGrabButton(dpy, Button3, AnyModifier, m_rootWindow, True,
-                ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
-                GrabModeAsync, GrabModeAsync, None, None);
+    m_pollTimer->start(8);
 
     qCInfo(lcX11Input) << "Started listening for global input";
     m_listening = true;
@@ -61,9 +75,11 @@ void X11Input::stopListening()
 {
     if (!m_listening) return;
 
+    m_pollTimer->stop();
+
     if (m_display && m_rootWindow) {
         Display* dpy = static_cast<Display*>(m_display);
-        XUngrabButton(dpy, Button3, AnyModifier, m_rootWindow);
+        XUngrabButton(dpy, m_triggerButton, m_triggerModifier, m_rootWindow);
         XFlush(dpy);
     }
 
@@ -72,6 +88,25 @@ void X11Input::stopListening()
     m_listening = false;
 
     qCInfo(lcX11Input) << "Stopped listening";
+}
+
+void X11Input::updateGrab()
+{
+    if (!m_display || m_rootWindow == 0) return;
+
+    Display* dpy = static_cast<Display*>(m_display);
+
+    // Remove old grab first
+    XUngrabButton(dpy, m_triggerButton, m_triggerModifier, m_rootWindow);
+
+    // Grab trigger button with specific modifier
+    XGrabButton(dpy, m_triggerButton, m_triggerModifier, m_rootWindow, True,
+                ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
+                GrabModeAsync, GrabModeAsync, None, None);
+
+    XFlush(dpy);
+
+    qCInfo(lcX11Input) << "Grab updated: button" << m_triggerButton << "modifier" << m_triggerModifier;
 }
 
 void X11Input::pollEvents()
@@ -100,12 +135,12 @@ void X11Input::pollEvents()
     }
 }
 
-void X11Input::handleButtonPress(int button)
+bool X11Input::isSuperDown()
 {
-    Display* dpy = static_cast<Display*>(m_display);
-    if (!dpy) return;
+    if (!m_display) return false;
 
-    // Check for Super key
+    Display* dpy = static_cast<Display*>(m_display);
+
     char keys_return[32];
     XQueryKeymap(dpy, keys_return);
 
@@ -120,12 +155,27 @@ void X11Input::handleButtonPress(int button)
         superDown = true;
     }
 
-    if (button == Button3) { // Right mouse button
+    return superDown;
+}
+
+void X11Input::handleButtonPress(int button)
+{
+    // Handle mouse wheel (Button4 = scroll up, Button5 = scroll down)
+    if (button == Button4) {
+        handleWheel(1);
+        return;
+    }
+    if (button == Button5) {
+        handleWheel(-1);
+        return;
+    }
+
+    if (button == m_triggerButton) {
         m_rmbPressed = true;
 
-        if (superDown) {
+        if (isSuperDown()) {
             m_superPressed = true;
-            qCDebug(lcX11Input) << "Super + RMB detected";
+            qCDebug(lcX11Input) << "Super + trigger detected";
 
             if (m_superRMBCallback) {
                 m_superRMBCallback();
@@ -136,7 +186,7 @@ void X11Input::handleButtonPress(int button)
 
 void X11Input::handleButtonRelease(int button)
 {
-    if (button == Button3) {
+    if (button == m_triggerButton) {
         m_rmbPressed = false;
 
         if (m_superPressed) {
@@ -146,7 +196,7 @@ void X11Input::handleButtonRelease(int button)
                 m_superRMBReleaseCallback();
             }
 
-            qCDebug(lcX11Input) << "Super + RMB released";
+            qCDebug(lcX11Input) << "Super + trigger released";
         }
     }
 }

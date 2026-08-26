@@ -74,6 +74,7 @@ Item {
                         case "ring2button": return ring2ButtonComponent
                         case "workspace": return workspaceItemComponent
                         case "popularapp": return popularAppItemComponent
+                        case "settings": return settingsItemComponent
                         default: return null
                     }
                 }
@@ -114,6 +115,14 @@ Item {
                     PopularAppItem {
                         title: ringItemLoader.itemTitle
                         icon: ringItemLoader.itemIcon
+                        isSelected: ringItemLoader.itemIsSelected
+                    }
+                }
+
+                Component {
+                    id: settingsItemComponent
+                    SettingsItem {
+                        title: ringItemLoader.itemTitle
                         isSelected: ringItemLoader.itemIsSelected
                     }
                 }

@@ -23,6 +23,9 @@ public:
     void setCursorMoveCallback(CursorMoveCallback cb) { m_cursorMoveCallback = std::move(cb); }
     void setWheelCallback(WheelCallback cb) { m_wheelCallback = std::move(cb); }
 
+    void setTriggerModifier(unsigned int modifier);
+    void setTriggerButton(int button);
+
     void startListening();
     void stopListening();
 

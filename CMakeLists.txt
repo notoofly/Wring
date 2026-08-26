@@ -11,6 +11,8 @@ set(ORB_SOURCES
     src/main.cpp
     src/core/wring_controller.cpp
     src/core/wring_controller.hpp
+    src/core/wring_settings.cpp
+    src/core/wring_settings.hpp
 )
 
 set(ORB_QML_FILES

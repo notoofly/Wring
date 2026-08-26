@@ -9,6 +9,7 @@ Item {
     property real ring2Radius: 120
     property real itemSize: 64
     property int animationDuration: 200
+    property bool showingSettings: false
 
     visible: WringController.visible
     opacity: WringController.visible ? 1.0 : 0.0
@@ -32,15 +33,27 @@ Item {
         target: WringController
 
         function onDismiss() {
+            showingSettings = false
             wringRoot.opacity = 0.0
             wringRoot.scale = 0.8
+        }
+    }
+
+    // Settings page (overlay)
+    SettingsPage {
+        id: settingsPage
+        anchors.fill: parent
+        visible: showingSettings
+
+        onBack: {
+            showingSettings = false
         }
     }
 
     Ring {
         id: ring1
         anchors.fill: parent
-        visible: WringController.state === 1
+        visible: WringController.state === 1 && !showingSettings
 
         center: WringController.ring1Center
         radius: wringRoot.ring1Radius
@@ -92,14 +105,14 @@ Item {
     Ring {
         id: ring2
         anchors.fill: parent
-        visible: WringController.state === 2
+        visible: WringController.state === 2 && !showingSettings
 
         center: WringController.ring2Center
         radius: wringRoot.ring2Radius
         itemCount: {
             var ws = WringController.workspaces
             var apps = WringController.popularApps
-            return (ws ? ws.length : 0) + (apps ? apps.length : 0)
+            return (ws ? ws.length : 0) + (apps ? apps.length : 0) + 1
         }
         selectedIndex: WringController.ring2SelectedIndex
         itemSize: wringRoot.itemSize
@@ -134,17 +147,34 @@ Item {
                 })
             }
 
+            items.push({
+                type: "settings",
+                title: "Settings",
+                applicationName: "",
+                icon: null,
+                isActive: false,
+                id: -2
+            })
+
             return items
         }
 
         onItemClicked: function(index) {
-            WringController.ring2SelectByIndex(index)
-            WringController.activateRing2Item()
+            var items = ring2.model
+            if (index < 0 || index >= items.length) return
+            var item = items[index]
+            if (item.type === "settings") {
+                showingSettings = true
+            } else {
+                WringController.ring2SelectByIndex(index)
+                WringController.activateRing2Item()
+            }
         }
     }
 
     MouseArea {
         anchors.fill: parent
+        visible: !showingSettings
         onClicked: function(mouse) {
             WringController.hide()
         }

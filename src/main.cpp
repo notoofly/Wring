@@ -5,6 +5,7 @@
 #include <QQuickWindow>
 
 #include "wring_controller.hpp"
+#include "wring_settings.hpp"
 #include "global_input.hpp"
 
 #ifdef Q_OS_LINUX
@@ -25,6 +26,7 @@ int main(int argc, char* argv[])
     qCInfo(lcMain) << "Wring starting...";
 
     WringController controller;
+    WringSettings settings;
 
 #ifdef Q_OS_LINUX
     auto backend = std::make_unique<X11Backend>();
@@ -73,11 +75,23 @@ int main(int argc, char* argv[])
 
     input.startListening();
 
+    input.setTriggerModifier(settings.triggerModifier());
+    input.setTriggerButton(settings.triggerButton());
+
+    QObject::connect(&settings, &WringSettings::triggerModifierChanged, &input, [&input, &settings]() {
+        input.setTriggerModifier(settings.triggerModifier());
+    });
+    QObject::connect(&settings, &WringSettings::triggerButtonChanged, &input, [&input, &settings]() {
+        input.setTriggerButton(settings.triggerButton());
+    });
+
     QQmlApplicationEngine engine;
 
     qmlRegisterSingletonInstance<WringController>(
         "Wring", 1, 0, "WringController", &controller);
-    qCInfo(lcMain) << "Singleton registered";
+    qmlRegisterSingletonInstance<WringSettings>(
+        "Wring", 1, 0, "WringSettings", &settings);
+    qCInfo(lcMain) << "Singletons registered";
 
     QObject::connect(
         &engine,

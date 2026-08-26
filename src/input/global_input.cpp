@@ -58,6 +58,20 @@ void GlobalInput::startListening()
     m_listening = true;
 }
 
+void GlobalInput::setTriggerModifier(unsigned int modifier)
+{
+    if (m_impl && m_impl->input) {
+        m_impl->input->setTriggerModifier(modifier);
+    }
+}
+
+void GlobalInput::setTriggerButton(int button)
+{
+    if (m_impl && m_impl->input) {
+        m_impl->input->setTriggerButton(button);
+    }
+}
+
 void GlobalInput::stopListening()
 {
     if (!m_impl || !m_impl->input) return;
