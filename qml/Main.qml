@@ -3,7 +3,6 @@ import QtQuick.Window
 
 Window {
     id: root
-    visible: true
     width: 1
     height: 1
     x: -100
@@ -11,8 +10,6 @@ Window {
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
     color: "transparent"
     title: "Wring"
-    visible: false
-
     visibility: Window.Hidden
 
     Wring {
