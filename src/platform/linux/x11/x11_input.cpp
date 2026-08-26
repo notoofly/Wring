@@ -1,10 +1,13 @@
 #include "x11_input.hpp"
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <X11/Xutil.h>
+
+// Qt headers before X11 — Xlib.h defines Status which conflicts with QTextStream
 #include <QLoggingCategory>
 #include <QTimer>
 #include <cstring>
+
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include <X11/Xutil.h>
 
 Q_LOGGING_CATEGORY(lcX11Input, "wring.input.x11")
 
