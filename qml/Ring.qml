@@ -12,12 +12,6 @@ Item {
 
     signal itemSelected(int index)
 
-    delegate: Item {
-        id: delegateItem
-        required property int index
-        required property var modelData
-    }
-
     Repeater {
         id: repeater
         model: ringRoot.model
