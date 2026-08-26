@@ -75,8 +75,9 @@ int main(int argc, char* argv[])
 
     QQmlApplicationEngine engine;
 
-    engine.rootContext()->setContextProperty(QStringLiteral("WringController"), &controller);
-    qCInfo(lcMain) << "Context property set";
+    qmlRegisterSingletonInstance<WringController>(
+        "Wring", 1, 0, "WringController", &controller);
+    qCInfo(lcMain) << "Singleton registered";
 
     QObject::connect(
         &engine,
