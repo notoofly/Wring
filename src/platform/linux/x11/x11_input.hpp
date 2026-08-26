@@ -50,7 +50,7 @@ private:
     bool m_superPressed = false;
     bool m_rmbPressed = false;
 
-    unsigned int m_triggerModifier = 64; // Mod4Mask (Super)
+    unsigned int m_triggerModifier = 5; // CtrlMask | ShiftMask
     int m_triggerButton = 3; // Button3 (Right)
 
     SuperRMBCallback m_superRMBCallback;

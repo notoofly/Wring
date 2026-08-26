@@ -52,6 +52,6 @@ private:
     void save();
 
     QSettings m_settings;
-    int m_triggerModifier = Super;
+    int m_triggerModifier = Ctrl | Shift;
     int m_triggerButton = Right;
 };
