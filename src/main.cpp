@@ -75,7 +75,8 @@ int main(int argc, char* argv[])
 
     QQmlApplicationEngine engine;
 
-    engine.rootContext()->setContextProperty("WringController", &controller);
+    engine.rootContext()->setContextProperty(QStringLiteral("WringController"), &controller);
+    qCInfo(lcMain) << "Context property set";
 
     QObject::connect(
         &engine,
