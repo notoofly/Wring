@@ -73,11 +73,11 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    input.startListening();
-
     input.setTriggerModifier(settings.triggerModifier());
     input.setTriggerButton(settings.triggerButton());
     input.setTriggerKey(settings.triggerKey());
+
+    input.startListening();
 
     QObject::connect(&settings, &WringSettings::triggerModifierChanged, &input, [&input, &settings]() {
         input.setTriggerModifier(settings.triggerModifier());
