@@ -23,6 +23,9 @@ int main(int argc, char* argv[])
     app.setOrganizationName("wring");
     app.setApplicationVersion("0.1.0");
 
+    bool bypass = app.arguments().contains("--bypass");
+    if (bypass) qCInfo(lcMain) << "Bypass mode: showing ring immediately";
+
     qCInfo(lcMain) << "Wring starting...";
 
     WringController controller;
@@ -111,6 +114,10 @@ int main(int argc, char* argv[])
     }
 
     qCInfo(lcMain) << "Wring started successfully";
+
+    if (bypass) {
+        controller.show();
+    }
 
     int result = app.exec();
 
