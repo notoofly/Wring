@@ -11,8 +11,8 @@ WringSettings::~WringSettings() = default;
 
 void WringSettings::load()
 {
-    m_triggerModifier = m_settings.value("shortcut/modifier", Ctrl | Shift).toInt();
-    m_triggerButton = m_settings.value("shortcut/button", Right).toInt();
+    m_triggerModifier = m_settings.value("shortcut/modifier", Super | Shift).toInt();
+    m_triggerButton = m_settings.value("shortcut/button", Left).toInt();
 }
 
 void WringSettings::save()
