@@ -29,12 +29,31 @@ Use the mouse wheel while Wring is open to cycle through items. Wraps around at 
 sudo apt install build-essential cmake qt6-base-dev qt6-declarative-dev \
     libx11-dev libxext-dev libxcb1-dev libxcb-util-dev pkg-config
 
-# Fedora
-sudo dnf install gcc-c++ cmake qt6-qtbase-devel qt6-qtdeclarative-devel \
-    libX11-devel libXext-devel xcb-util-devel pkg-config
+# Fedora (39+)
+sudo dnf install gcc-c++ cmake ninja-build \
+    qt6-qtbase-devel qt6-qtdeclarative-devel \
+    libX11-devel libXext-devel xcb-util-devel pkgconf-pkg-config
 
-# Arch
-sudo pacman -S base-devel cmake qt6-base qt6-declarative \
+# Rocky Linux / AlmaLinux / CentOS Stream 9+
+sudo dnf install epel-release
+sudo dnf groupinstall "Development Tools"
+sudo dnf install cmake ninja-build qt6-qtbase-devel qt6-qtdeclarative-devel \
+    libX11-devel libXext-devel xcb-util-devel pkgconf-pkg-config
+
+# openSUSE Tumbleweed
+sudo zypper install -t pattern devel_basis
+sudo zypper install cmake ninja gcc-c++ \
+    qt6-base-devel qt6-declarative-devel \
+    libX11-devel libXext-devel xcb-util-devel pkgconf-pkg-config
+
+# openSUSE Leap 15.5+
+sudo zypper install -t pattern devel_basis
+sudo zypper install cmake ninja gcc-c++ \
+    qt6-base-devel qt6-declarative-devel \
+    libX11-devel libXext-devel xcb-util-devel pkgconf-pkg-config
+
+# Arch / Manjaro
+sudo pacman -S base-devel cmake ninja qt6-base qt6-declarative \
     libx11 libxext xcb-util pkgconf
 ```
 
