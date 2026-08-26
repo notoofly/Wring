@@ -9,8 +9,9 @@ Item {
     property int selectedIndex: -1
     property var model: []
     property real startAngle: -Math.PI / 2
+    property real itemSize: 64
 
-    signal itemSelected(int index)
+    signal itemClicked(int index)
 
     Repeater {
         id: repeater
@@ -31,10 +32,10 @@ Item {
             property real itemX: ringRoot.center.x + Math.cos(angle) * ringRoot.radius
             property real itemY: ringRoot.center.y + Math.sin(angle) * ringRoot.radius
 
-            x: itemX - width / 2
-            y: itemY - height / 2
-            width: ringItemLoader.item ? ringItemLoader.item.width : 64
-            height: ringItemLoader.item ? ringItemLoader.item.height : 64
+            x: itemX - ringRoot.itemSize / 2
+            y: itemY - ringRoot.itemSize / 2
+            width: ringRoot.itemSize
+            height: ringRoot.itemSize
 
             property bool isSelected: index === ringRoot.selectedIndex
 
@@ -77,12 +78,10 @@ Item {
                     }
                 }
 
-                property var itemModel: modelData
-                property bool itemIsSelected: ringItem.isSelected
-                property int itemIndex: ringItem.index
                 property string itemTitle: modelData ? (modelData.title || "") : ""
                 property var itemIcon: modelData ? (modelData.icon || null) : null
                 property bool itemIsActive: modelData ? (modelData.isActive || false) : false
+                property bool itemIsSelected: ringItem.isSelected
 
                 Component {
                     id: windowItemComponent
@@ -123,24 +122,9 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
-
-                onEntered: {
-                    ringRoot.itemSelected(ringItem.index)
-                }
-
                 onClicked: function(mouse) {
                     mouse.accepted = true
-                    if (modelData) {
-                        if (modelData.type === "window") {
-                            WringController.selectByIndex(ringItem.index)
-                            WringController.activateSelected()
-                        } else if (modelData.type === "ring2button") {
-                            WringController.openRing2()
-                        } else if (modelData.type === "workspace" || modelData.type === "popularapp") {
-                            WringController.ring2SelectByIndex(ringItem.index)
-                            WringController.activateRing2Item()
-                        }
-                    }
+                    ringRoot.itemClicked(ringItem.index)
                 }
             }
         }

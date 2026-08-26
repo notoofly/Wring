@@ -45,6 +45,7 @@ Item {
         radius: wringRoot.ring1Radius
         itemCount: WringController.ring1ItemCount
         selectedIndex: WringController.selectedIndex
+        itemSize: wringRoot.itemSize
 
         model: {
             var items = []
@@ -74,29 +75,16 @@ Item {
             return items
         }
 
-        delegate: RingItem {
-            width: wringRoot.itemSize
-            height: wringRoot.itemSize
-
-            itemData: modelData
-            isSelected: index === WringController.selectedIndex
-            ringCenter: WringController.ring1Center
-            ringRadius: wringRoot.ring1Radius
-            itemIndex: index
-            totalItems: WringController.ring1ItemCount
-
-            onClicked: {
-                if (modelData.type === "ring2button") {
-                    WringController.openRing2()
-                } else {
-                    WringController.selectByIndex(index)
-                    WringController.activateSelected()
-                }
+        onItemClicked: function(index) {
+            var items = ring1.model
+            if (index < 0 || index >= items.length) return
+            var item = items[index]
+            if (item.type === "ring2button") {
+                WringController.openRing2()
+            } else {
+                WringController.selectByIndex(index)
+                WringController.activateSelected()
             }
-        }
-
-        onItemSelected: function(index) {
-            WringController.selectByIndex(index)
         }
     }
 
@@ -113,6 +101,7 @@ Item {
             return (ws ? ws.length : 0) + (apps ? apps.length : 0)
         }
         selectedIndex: WringController.ring2SelectedIndex
+        itemSize: wringRoot.itemSize
 
         model: {
             var items = []
@@ -147,25 +136,9 @@ Item {
             return items
         }
 
-        delegate: RingItem {
-            width: wringRoot.itemSize
-            height: wringRoot.itemSize
-
-            itemData: modelData
-            isSelected: index === WringController.ring2SelectedIndex
-            ringCenter: WringController.ring2Center
-            ringRadius: wringRoot.ring2Radius
-            itemIndex: index
-            totalItems: ring2.itemCount
-
-            onClicked: {
-                WringController.ring2SelectByIndex(index)
-                WringController.activateRing2Item()
-            }
-        }
-
-        onItemSelected: function(index) {
+        onItemClicked: function(index) {
             WringController.ring2SelectByIndex(index)
+            WringController.activateRing2Item()
         }
     }
 
