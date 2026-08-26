@@ -19,14 +19,17 @@ public:
     using SuperRMBReleaseCallback = std::function<void()>;
     using CursorMoveCallback = std::function<void(int, int)>;
     using WheelCallback = std::function<void(int)>;
+    using KeyboardCallback = std::function<void()>;
 
     void setSuperRMBCallback(SuperRMBCallback cb) { m_superRMBCallback = std::move(cb); }
     void setSuperRMBReleaseCallback(SuperRMBReleaseCallback cb) { m_superRMBReleaseCallback = std::move(cb); }
     void setCursorMoveCallback(CursorMoveCallback cb) { m_cursorMoveCallback = std::move(cb); }
     void setWheelCallback(WheelCallback cb) { m_wheelCallback = std::move(cb); }
+    void setKeyboardCallback(KeyboardCallback cb) { m_keyboardCallback = std::move(cb); }
 
     void setTriggerModifier(unsigned int modifier);
     void setTriggerButton(int button);
+    void setTriggerKey(unsigned int keysym);
 
     void startListening();
     void stopListening();
@@ -42,7 +45,10 @@ private:
     void handleButtonRelease(int button);
     void handleMotion(int x, int y);
     void handleWheel(int delta);
-    bool isSuperDown();
+    void handleKeyPress(int keycode);
+    void handleKeyRelease(int keycode);
+    bool isModifierDown(unsigned int mask);
+    void updateKeyGrab();
 
     void* m_display = nullptr;
     unsigned long m_rootWindow = 0;
@@ -50,13 +56,15 @@ private:
     bool m_superPressed = false;
     bool m_rmbPressed = false;
 
-    unsigned int m_triggerModifier = 65; // Mod4Mask | ShiftMask (Super+Shift)
+    unsigned int m_triggerModifier = 64; // Mod4Mask (Super)
     int m_triggerButton = 1; // Button1 (Left)
+    unsigned int m_triggerKeysym = 0; // 0 = no keyboard shortcut
 
     SuperRMBCallback m_superRMBCallback;
     SuperRMBReleaseCallback m_superRMBReleaseCallback;
     CursorMoveCallback m_cursorMoveCallback;
     WheelCallback m_wheelCallback;
+    KeyboardCallback m_keyboardCallback;
 
     int m_lastX = 0;
     int m_lastY = 0;

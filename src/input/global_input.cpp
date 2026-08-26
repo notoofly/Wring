@@ -23,6 +23,7 @@ GlobalInput::GlobalInput(QObject* parent)
     m_impl->input->setSuperRMBReleaseCallback([this]() { onSuperRMBRelease(); });
     m_impl->input->setCursorMoveCallback([this](int x, int y) { onCursorMove(x, y); });
     m_impl->input->setWheelCallback([this](int d) { onWheel(d); });
+    m_impl->input->setKeyboardCallback([this]() { onSuperRMB(); });
 }
 
 GlobalInput::~GlobalInput() = default;
@@ -69,6 +70,13 @@ void GlobalInput::setTriggerButton(int button)
 {
     if (m_impl && m_impl->input) {
         m_impl->input->setTriggerButton(button);
+    }
+}
+
+void GlobalInput::setTriggerKey(unsigned int keysym)
+{
+    if (m_impl && m_impl->input) {
+        m_impl->input->setTriggerKey(keysym);
     }
 }
 

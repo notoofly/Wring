@@ -25,6 +25,7 @@ public:
 
     void setTriggerModifier(unsigned int modifier);
     void setTriggerButton(int button);
+    void setTriggerKey(unsigned int keysym);
 
     void startListening();
     void stopListening();

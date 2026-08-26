@@ -77,12 +77,16 @@ int main(int argc, char* argv[])
 
     input.setTriggerModifier(settings.triggerModifier());
     input.setTriggerButton(settings.triggerButton());
+    input.setTriggerKey(settings.triggerKey());
 
     QObject::connect(&settings, &WringSettings::triggerModifierChanged, &input, [&input, &settings]() {
         input.setTriggerModifier(settings.triggerModifier());
     });
     QObject::connect(&settings, &WringSettings::triggerButtonChanged, &input, [&input, &settings]() {
         input.setTriggerButton(settings.triggerButton());
+    });
+    QObject::connect(&settings, &WringSettings::triggerKeyChanged, &input, [&input, &settings]() {
+        input.setTriggerKey(settings.triggerKey());
     });
 
     QQmlApplicationEngine engine;
