@@ -1,5 +1,5 @@
 import QtQuick
-import Wring 1.0
+import QtQuick.Window
 
 Item {
     id: wringRoot

@@ -75,8 +75,7 @@ int main(int argc, char* argv[])
 
     QQmlApplicationEngine engine;
 
-    qmlRegisterSingletonInstance<WringController>(
-        "Wring", 1, 0, "WringController", &controller);
+    engine.rootContext()->setContextProperty("WringController", &controller);
 
     QObject::connect(
         &engine,
