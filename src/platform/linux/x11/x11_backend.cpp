@@ -1,9 +1,17 @@
 #include "x11_backend.hpp"
+
+// Qt headers first (QTextStream::Status must be defined before X11's Status)
 #include <QLoggingCategory>
 #include <QImage>
 #include <QFile>
 #include <QProcess>
 #include <cstring>
+
+// X11 headers after Qt — Xlib.h defines Status which conflicts with Qt
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xutil.h>
+#include <xcb/xcb.h>
 
 Q_LOGGING_CATEGORY(lcX11, "wring.platform.x11")
 
@@ -58,9 +66,9 @@ QList<WindowInfo> X11Backend::listWindows()
 
     if (!m_display) return result;
 
-    QList<Window> children = getChildWindows(m_rootWindow);
+    QList<unsigned long> children = getChildWindows(m_rootWindow);
 
-    for (Window w : children) {
+    for (unsigned long w : children) {
         if (!isWindowVisible(w)) continue;
 
         QString title = getWindowTitle(w);
@@ -79,7 +87,7 @@ QList<WindowInfo> X11Backend::listWindows()
             info.isMinimized = (attrs.map_state == IsUnmapped);
         }
 
-        Window activeWindow = 0;
+        unsigned long activeWindow = 0;
         Atom actualType;
         int actualFormat;
         unsigned long nItems, bytesAfter;
@@ -91,7 +99,7 @@ QList<WindowInfo> X11Backend::listWindows()
                              0, 1, False, XA_WINDOW, &actualType, &actualFormat,
                              &nItems, &bytesAfter, &data) == Success &&
             data && nItems > 0) {
-            activeWindow = *reinterpret_cast<Window*>(data);
+            activeWindow = *reinterpret_cast<unsigned long*>(data);
             XFree(data);
         }
 
@@ -107,13 +115,12 @@ bool X11Backend::activateWindow(PlatformWindowId windowId)
 {
     if (!m_display) return false;
 
-    Window w = static_cast<Window>(windowId);
+    unsigned long w = static_cast<unsigned long>(windowId);
 
     Atom netActiveWindow = XInternAtom(m_display, "_NET_ACTIVE_WINDOW", False);
     Atom netWmState = XInternAtom(m_display, "_NET_WM_STATE", False);
     Atom netWmStateHidden = XInternAtom(m_display, "_NET_WM_STATE_HIDDEN", False);
 
-    // Remove hidden state if minimized
     XEvent event;
     std::memset(&event, 0, sizeof(event));
     event.xclient.type = ClientMessage;
@@ -131,7 +138,6 @@ bool X11Backend::activateWindow(PlatformWindowId windowId)
     XSendEvent(m_display, m_rootWindow, False,
                SubstructureRedirectMask | SubstructureNotifyMask, &event);
 
-    // Activate the window
     std::memset(&event, 0, sizeof(event));
     event.xclient.type = ClientMessage;
     event.xclient.serial = 0;
@@ -140,19 +146,15 @@ bool X11Backend::activateWindow(PlatformWindowId windowId)
     event.xclient.window = w;
     event.xclient.message_type = netActiveWindow;
     event.xclient.format = 32;
-    event.xclient.data.l[0] = 2; // Source indication: pager/taskbar
+    event.xclient.data.l[0] = 2;
     event.xclient.data.l[1] = CurrentTime;
     event.xclient.data.l[2] = 0;
 
     XSendEvent(m_display, m_rootWindow, False,
                SubstructureRedirectMask | SubstructureNotifyMask, &event);
 
-    // Raise window
     XRaiseWindow(m_display, w);
-
-    // Move to front
     XMapWindow(m_display, w);
-
     XFlush(m_display);
 
     qCDebug(lcX11) << "Activated window:" << windowId;
@@ -163,7 +165,7 @@ bool X11Backend::minimizeWindow(PlatformWindowId windowId)
 {
     if (!m_display) return false;
 
-    Window w = static_cast<Window>(windowId);
+    unsigned long w = static_cast<unsigned long>(windowId);
 
     Atom netWmState = XInternAtom(m_display, "_NET_WM_STATE", False);
     Atom netWmStateHidden = XInternAtom(m_display, "_NET_WM_STATE_HIDDEN", False);
@@ -192,9 +194,8 @@ bool X11Backend::closeWindow(PlatformWindowId windowId)
 {
     if (!m_display) return false;
 
-    Window w = static_cast<Window>(windowId);
+    unsigned long w = static_cast<unsigned long>(windowId);
 
-    Atom netWmClose = XInternAtom(m_display, "WM_DELETE_WINDOW", False);
     Atom netClose = XInternAtom(m_display, "_NET_CLOSE_WINDOW", False);
 
     XEvent event;
@@ -219,7 +220,7 @@ QPoint X11Backend::cursorPosition()
 {
     if (!m_display) return QPoint(0, 0);
 
-    Window root_ret, child_ret;
+    unsigned long root_ret, child_ret;
     int root_x, root_y, win_x, win_y;
     unsigned int mask;
 
@@ -415,9 +416,9 @@ bool X11Backend::launchApplication(const QString& executable)
     return true;
 }
 
-QList<Window> X11Backend::getChildWindows(Window parent)
+QList<unsigned long> X11Backend::getChildWindows(unsigned long parent)
 {
-    QList<Window> result;
+    QList<unsigned long> result;
 
     if (!m_display) return result;
 
@@ -437,7 +438,7 @@ QList<Window> X11Backend::getChildWindows(Window parent)
     return result;
 }
 
-bool X11Backend::isWindowVisible(Window window)
+bool X11Backend::isWindowVisible(unsigned long window)
 {
     if (!m_display) return false;
 
@@ -480,7 +481,7 @@ bool X11Backend::isWindowVisible(Window window)
     return true;
 }
 
-QString X11Backend::getWindowTitle(Window window)
+QString X11Backend::getWindowTitle(unsigned long window)
 {
     if (!m_display) return {};
 
@@ -513,7 +514,7 @@ QString X11Backend::getWindowTitle(Window window)
     return {};
 }
 
-QString X11Backend::getApplicationName(Window window)
+QString X11Backend::getApplicationName(unsigned long window)
 {
     if (!m_display) return {};
 
@@ -547,7 +548,7 @@ QString X11Backend::getApplicationName(Window window)
     return {};
 }
 
-QString X11Backend::getWindowClass(Window window)
+QString X11Backend::getWindowClass(unsigned long window)
 {
     if (!m_display) return {};
 
@@ -562,7 +563,7 @@ QString X11Backend::getWindowClass(Window window)
     return {};
 }
 
-QImage X11Backend::getWindowIcon(Window window)
+QImage X11Backend::getWindowIcon(unsigned long window)
 {
     if (!m_display) return {};
 
@@ -602,7 +603,7 @@ QImage X11Backend::getWindowIcon(Window window)
     return {};
 }
 
-quint64 X11Backend::getCardinalProperty(Window window, Atom atom)
+quint64 X11Backend::getCardinalProperty(unsigned long window, unsigned long atom)
 {
     if (!m_display) return 0;
 
