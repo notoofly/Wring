@@ -4,8 +4,8 @@
 Q_LOGGING_CATEGORY(lcInput, "wring.input")
 
 #ifdef Q_OS_LINUX
-#include "x11_input.hpp"
-#include "x11_backend.hpp"
+#include "linux/x11/x11_input.hpp"
+#include "linux/x11/x11_backend.hpp"
 #include <memory>
 
 class GlobalInput::Impl {

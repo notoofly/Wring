@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="Main.qml">qml/Main.qml</file>
+    <file alias="Wring.qml">qml/Wring.qml</file>
+    <file alias="Ring.qml">qml/Ring.qml</file>
+    <file alias="RingItem.qml">qml/RingItem.qml</file>
+    <file alias="WindowItem.qml">qml/WindowItem.qml</file>
+    <file alias="Ring2Button.qml">qml/Ring2Button.qml</file>
+    <file alias="WorkspaceItem.qml">qml/WorkspaceItem.qml</file>
+    <file alias="PopularAppItem.qml">qml/PopularAppItem.qml</file>
+  </qresource>
+</RCC>

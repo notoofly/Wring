@@ -8,9 +8,9 @@
 #include "global_input.hpp"
 
 #ifdef Q_OS_LINUX
-#include "x11_backend.hpp"
+#include "linux/x11/x11_backend.hpp"
 #elif defined(Q_OS_WIN)
-#include "windows_backend.hpp"
+#include "windows/windows_backend.hpp"
 #endif
 
 Q_LOGGING_CATEGORY(lcMain, "wring.main")

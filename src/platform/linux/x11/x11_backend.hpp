@@ -1,8 +1,18 @@
 #pragma once
 
 #include "platform/desktop_backend.hpp"
+
+// Include Qt headers before X11 to avoid Status macro conflict
+#include <QObject>
+#include <QString>
+#include <QPoint>
+#include <QRect>
+#include <QImage>
+#include <QList>
+
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#include <X11/Xutil.h>
 #include <xcb/xcb.h>
 
 class X11Backend : public DesktopBackend {

@@ -56,15 +56,7 @@ elseif(UNIX AND NOT APPLE)
     )
 endif()
 
-set(QML_QRC_CONTENT "<RCC>\n  <qresource prefix=\"/\">\n")
-foreach(qml_file ${ORB_QML_FILES})
-    string(REPLACE "qml/" "" alias ${qml_file})
-    set(QML_QRC_CONTENT "${QML_QRC_CONTENT}    <file alias=\"${alias}\">${qml_file}</file>\n")
-endforeach()
-set(QML_QRC_CONTENT "${QML_QRC_CONTENT}  </qresource>\n</RCC>\n")
-file(WRITE ${CMAKE_BINARY_DIR}/qml.qrc "${QML_QRC_CONTENT}")
-
-add_executable(wring ${ORB_SOURCES} ${CMAKE_BINARY_DIR}/qml.qrc)
+add_executable(wring ${ORB_SOURCES} qml.qrc)
 
 target_include_directories(wring PRIVATE
     ${CMAKE_SOURCE_DIR}/src
