@@ -48,29 +48,25 @@ void X11Input::setTriggerModifier(unsigned int modifier)
 {
     if (m_triggerModifier == modifier) return;
     m_triggerModifier = modifier;
-    if (m_listening) updateGrab();
 }
 
 void X11Input::setTriggerButton(int button)
 {
     if (m_triggerButton == button) return;
     m_triggerButton = button;
-    if (m_listening) updateGrab();
 }
 
 void X11Input::setTriggerKey(unsigned int keysym)
 {
     if (m_triggerKeysym == keysym) return;
     m_triggerKeysym = keysym;
-    if (m_listening) updateGrab();
+    qCInfo(lcX11Input) << "Trigger key updated:" << keysym;
 }
 
 void X11Input::startListening()
 {
     if (m_listening) return;
     if (!m_display || m_rootWindow == 0) return;
-
-    updateGrab();
 
     m_pollTimer->start(8);
 
@@ -84,67 +80,12 @@ void X11Input::stopListening()
 
     m_pollTimer->stop();
 
-    if (m_display && m_rootWindow) {
-        Display* dpy = static_cast<Display*>(m_display);
-        XUngrabButton(dpy, m_triggerButton, m_triggerModifier, m_rootWindow);
-
-        if (m_triggerKeysym != 0) {
-            KeyCode keycode = XKeysymToKeycode(dpy, m_triggerKeysym);
-            if (keycode) {
-                XUngrabKey(dpy, keycode, m_triggerModifier, m_rootWindow);
-            }
-        }
-
-        XFlush(dpy);
-    }
-
     m_superPressed = false;
     m_rmbPressed = false;
+    m_keyWasDown = false;
     m_listening = false;
 
     qCInfo(lcX11Input) << "Stopped listening";
-}
-
-void X11Input::updateGrab()
-{
-    if (!m_display || m_rootWindow == 0) return;
-
-    Display* dpy = static_cast<Display*>(m_display);
-
-    // Remove old mouse grab
-    XUngrabButton(dpy, m_triggerButton, m_triggerModifier, m_rootWindow);
-
-    // Grab trigger button with specific modifier
-    XGrabButton(dpy, m_triggerButton, m_triggerModifier, m_rootWindow, True,
-                ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
-                GrabModeAsync, GrabModeAsync, None, None);
-
-    // Keyboard grab
-    updateKeyGrab();
-
-    XFlush(dpy);
-
-    qCInfo(lcX11Input) << "Grab updated: button" << m_triggerButton
-                       << "modifier" << m_triggerModifier
-                       << "keysym" << m_triggerKeysym;
-}
-
-void X11Input::updateKeyGrab()
-{
-    if (!m_display || m_rootWindow == 0) return;
-
-    Display* dpy = static_cast<Display*>(m_display);
-
-    if (m_triggerKeysym != 0) {
-        KeyCode keycode = XKeysymToKeycode(dpy, m_triggerKeysym);
-        if (keycode) {
-            XGrabKey(dpy, keycode, m_triggerModifier, m_rootWindow, True,
-                     GrabModeAsync, GrabModeAsync);
-            qCInfo(lcX11Input) << "Keyboard grab: keycode" << keycode << "keysym" << m_triggerKeysym;
-        } else {
-            qCWarning(lcX11Input) << "Could not get keycode for keysym" << m_triggerKeysym;
-        }
-    }
 }
 
 void X11Input::pollEvents()
@@ -153,6 +94,7 @@ void X11Input::pollEvents()
 
     Display* dpy = static_cast<Display*>(m_display);
 
+    // Drain queued X events
     while (XPending(dpy)) {
         XEvent event;
         XNextEvent(dpy, &event);
@@ -167,16 +109,13 @@ void X11Input::pollEvents()
             case MotionNotify:
                 handleMotion(event.xmotion.x_root, event.xmotion.y_root);
                 break;
-            case KeyPress:
-                handleKeyPress(event.xkey.keycode);
-                break;
-            case KeyRelease:
-                handleKeyRelease(event.xkey.keycode);
-                break;
             default:
                 break;
         }
     }
+
+    // Poll keyboard shortcut via XQueryKeymap (bypasses KWin grabs)
+    pollKeyboardShortcut();
 }
 
 bool X11Input::isModifierDown(unsigned int mask)
@@ -225,34 +164,36 @@ bool X11Input::isModifierDown(unsigned int mask)
     return false;
 }
 
-void X11Input::handleKeyPress(int keycode)
+void X11Input::pollKeyboardShortcut()
 {
     if (m_triggerKeysym == 0) return;
 
     Display* dpy = static_cast<Display*>(m_display);
-    KeyCode expectedCode = XKeysymToKeycode(dpy, m_triggerKeysym);
 
-    if (keycode == expectedCode) {
-        qCDebug(lcX11Input) << "Keyboard shortcut pressed:" << m_triggerKeysym;
+    char keys_return[32];
+    XQueryKeymap(dpy, keys_return);
+
+    KeyCode keycode = XKeysymToKeycode(dpy, m_triggerKeysym);
+    if (!keycode) return;
+
+    bool keyDown = (keys_return[keycode >> 3] & (1 << (keycode & 7))) != 0;
+
+    // Rising edge: key just pressed
+    if (keyDown && !m_keyWasDown) {
+        qCDebug(lcX11Input) << "Keyboard shortcut pressed (poll): keysym" << m_triggerKeysym;
         if (m_keyboardCallback) {
             m_keyboardCallback();
         }
     }
-}
-
-void X11Input::handleKeyRelease(int keycode)
-{
-    if (m_triggerKeysym == 0) return;
-
-    Display* dpy = static_cast<Display*>(m_display);
-    KeyCode expectedCode = XKeysymToKeycode(dpy, m_triggerKeysym);
-
-    if (keycode == expectedCode) {
-        qCDebug(lcX11Input) << "Keyboard shortcut released:" << m_triggerKeysym;
+    // Falling edge: key just released
+    else if (!keyDown && m_keyWasDown) {
+        qCDebug(lcX11Input) << "Keyboard shortcut released (poll): keysym" << m_triggerKeysym;
         if (m_superRMBReleaseCallback) {
             m_superRMBReleaseCallback();
         }
     }
+
+    m_keyWasDown = keyDown;
 }
 
 void X11Input::handleButtonPress(int button)

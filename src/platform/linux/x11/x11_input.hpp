@@ -33,7 +33,6 @@ public:
 
     void startListening();
     void stopListening();
-    void updateGrab();
 
     bool isListening() const { return m_listening; }
 
@@ -45,20 +44,19 @@ private:
     void handleButtonRelease(int button);
     void handleMotion(int x, int y);
     void handleWheel(int delta);
-    void handleKeyPress(int keycode);
-    void handleKeyRelease(int keycode);
+    void pollKeyboardShortcut();
     bool isModifierDown(unsigned int mask);
-    void updateKeyGrab();
 
     void* m_display = nullptr;
     unsigned long m_rootWindow = 0;
     bool m_listening = false;
     bool m_superPressed = false;
     bool m_rmbPressed = false;
+    bool m_keyWasDown = false;
 
     unsigned int m_triggerModifier = 64; // Mod4Mask (Super)
     int m_triggerButton = 1; // Button1 (Left)
-    unsigned int m_triggerKeysym = 0; // 0 = no keyboard shortcut
+    unsigned int m_triggerKeysym = 0;
 
     SuperRMBCallback m_superRMBCallback;
     SuperRMBReleaseCallback m_superRMBReleaseCallback;
